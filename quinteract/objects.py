@@ -90,17 +90,17 @@ class Quinteract(object):
         character_area = sum([c.area for c in self.characters])
         return float(character_area) / self.area
 
-    def generate_overlay(self, filename="overlay.png", new=False, fill=None):
-        if new:
-            im = Image.new("RGBA", (self.width, self.height), color=fill)
-        else:
-            im = Image.open(self.filename)
+    def generate_overlay(self, filename="overlay.png", color="red"):
+        im = Image.open(self.filename)
+        im.putalpha(1)
+        overlay = Image.new("RGBA", im.size)
 
-        draw = ImageDraw.Draw(im)
+        draw = ImageDraw.Draw(overlay)
         for charbox in self.characters:
-            draw.rectangle((charbox.topleft, charbox.bottomright), fill="black")
+            draw.rectangle((charbox.topleft, charbox.bottomright), fill=color)
 
+        blend = Image.blend(im, overlay, .5)
         with open(filename, 'w') as imgfile:
-            im.save(imgfile)
+            blend.save(imgfile)
 
         return filename
