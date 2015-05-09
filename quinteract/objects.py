@@ -1,6 +1,7 @@
 import subprocess
 import tempfile
 import os
+import itertools
 from PIL import Image, ImageDraw
 
 class CharacterBox(object):
@@ -41,6 +42,7 @@ class Quinteract(object):
     TEMP_PREFIX = 'quinteract'
 
     def __init__(self, filename=None):
+        self.grids = {}
         self.filename = filename
         self.process()
 
@@ -85,38 +87,55 @@ class Quinteract(object):
     def text(self):
         return self._text
 
-    @property
-    def percent_text(self):
-        character_area = sum([c.area for c in self.characters])
-        return float(character_area) / self.area
+    def _get_grid(self, rows=5, cols=5):
+        if (rows, cols) in self.grids:
+            return self.grids[(rows, cols)]
 
-    def generate_grid_overlay(self, filename="gridoverlay.png",
-                              active_color="green", inactive_color="red",
-                              rows=5, cols=5):
-        im = Image.open(self.filename)
-        im.putalpha(255)
-        overlay = Image.new("RGBA", im.size)
-
-        grid = [[False for _ in range(cols)] for _ in range(rows)]
-        row_divisor = self.height / rows
-        col_divisor = self.width / cols
+        cells = [[False for _ in range(cols)] for _ in range(rows)]
+        cell_height = self.height / rows
+        cell_width = self.width / cols
 
         def find_cell(x, y):
-            return (min(y / row_divisor, rows - 1), min(x / col_divisor, cols - 1))
+            return (min(y / cell_height, rows - 1), min(x / cell_width, cols - 1))
 
         for char in self.characters:
             row_start, col_start = find_cell(*char.topleft)
             row_stop,  col_stop  = find_cell(*char.bottomright)
             for row in range(row_start, row_stop + 1):
                 for col in range(col_start, col_stop + 1):
-                    grid[row][col] = True
+                    cells[row][col] = True
+
+        grid = {
+            'cell_height': cell_height,
+            'cell_width': cell_width,
+            'cells': cells
+            }
+        self.grids[(rows, cols)] = grid
+        return grid
+
+    def percent_text(self):
+        character_area = sum([c.area for c in self.characters])
+        return float(character_area) / self.area
+
+    def percent_grid(self, rows=5, cols=5):
+        grid = self._get_grid(rows, cols)
+        active_cells = sum(itertools.chain(*grid['cells']))
+        return float(active_cells) / (rows * cols)
+
+    def generate_grid_overlay(self, filename="gridoverlay.png",
+                              active_color="green", inactive_color="red",
+                              rows=5, cols=5):
+        grid = self._get_grid(rows, cols)
+        im = Image.open(self.filename)
+        im.putalpha(255)
+        overlay = Image.new("RGBA", im.size)
 
         draw = ImageDraw.Draw(overlay)
-        for row_index, row in enumerate(grid):
+        for row_index, row in enumerate(grid['cells']):
             for col_index, active in enumerate(row):
                 color = active_color if active else inactive_color
-                cell_topleft     = (col_divisor * col_index, row_divisor * row_index)
-                cell_bottomright = (col_divisor * (col_index + 1), row_divisor * (row_index + 1))
+                cell_topleft     = (grid['cell_width'] * col_index, grid['cell_height'] * row_index)
+                cell_bottomright = (grid['cell_width'] * (col_index + 1), grid['cell_height'] * (row_index + 1))
                 draw.rectangle((cell_topleft, cell_bottomright), fill=color, outline="black")
 
         blend = Image.blend(im, overlay, .5)
