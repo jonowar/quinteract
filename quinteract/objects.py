@@ -90,9 +90,44 @@ class Quinteract(object):
         character_area = sum([c.area for c in self.characters])
         return float(character_area) / self.area
 
-    def generate_overlay(self, filename="overlay.png", color="red"):
+    def generate_grid_overlay(self, filename="gridoverlay.png",
+                              active_color="green", inactive_color="red",
+                              rows=5, cols=5):
         im = Image.open(self.filename)
-        im.putalpha(1)
+        im.putalpha(255)
+        overlay = Image.new("RGBA", im.size)
+
+        grid = [[False for _ in range(cols)] for _ in range(rows)]
+        row_divisor = self.height / rows
+        col_divisor = self.width / cols
+
+        def find_cell(x, y):
+            return (min(y / row_divisor, rows - 1), min(x / col_divisor, cols - 1))
+
+        for char in self.characters:
+            row_start, col_start = find_cell(*char.topleft)
+            row_stop,  col_stop  = find_cell(*char.bottomright)
+            for row in range(row_start, row_stop + 1):
+                for col in range(col_start, col_stop + 1):
+                    grid[row][col] = True
+
+        draw = ImageDraw.Draw(overlay)
+        for row_index, row in enumerate(grid):
+            for col_index, active in enumerate(row):
+                color = active_color if active else inactive_color
+                cell_topleft     = (col_divisor * col_index, row_divisor * row_index)
+                cell_bottomright = (col_divisor * (col_index + 1), row_divisor * (row_index + 1))
+                draw.rectangle((cell_topleft, cell_bottomright), fill=color, outline="black")
+
+        blend = Image.blend(im, overlay, .5)
+        with open(filename, 'w') as imgfile:
+            blend.save(imgfile)
+
+        return filename
+
+    def generate_text_overlay(self, filename="overlay.png", color="red"):
+        im = Image.open(self.filename)
+        im.putalpha(255)
         overlay = Image.new("RGBA", im.size)
 
         draw = ImageDraw.Draw(overlay)
