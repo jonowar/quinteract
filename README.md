@@ -24,8 +24,15 @@ or follow the tesseract installation instructions here: https://code.google.com/
 >>> print q.text
 YOLO
 
+
 >>> q.area
 10000
 >>> q.percent_text
 0.2444
+>>> q.generate_text_overlay(rows=5, cols=5)
+'overlay.png'
+>>> q.generate_grid_overlay(rows=5, cols=5)
+'gridoverlay.png'
+>>> q.percent_grid(rows=5, cols=5)
+0.4
 ```
