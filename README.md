@@ -4,7 +4,7 @@ A Python wrapper around Tesseract, mainly used to determine the percentage of te
 ## History
 quinteract = quintile + tesseract
 
-Created as an AdRoll hackday project to determine if an image has less than 20% text, as per Facebook ad image guidelines.
+Created as an AdRoll hackday project to determine if an image has less than 20% text, as per Facebook ad image guidelines. Facebook provides a tool (https://www.facebook.com/ads/tools/text_overlay) where the text in an image must be manually selected - I thought it would be cool to have it done for you automatically.
 
 ## Installation
 
