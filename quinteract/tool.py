@@ -23,7 +23,7 @@ def main():
             with open(outfile, 'wb') as out:
                 out.write(q.text)
         elif args.overlay:
-            q.generate_text_overlay(filename=args.outfile, rows=args.rows, cols=args.cols)
+            q.generate_text_overlay(filename=args.outfile)
         elif args.grid:
             q.generate_grid_overlay(filename=args.outfile, rows=args.rows, cols=args.cols)
 
@@ -31,7 +31,7 @@ def main():
         if args.text:
             print q.text
         elif args.overlay:
-            print q.generate_text_overlay(rows=args.rows, cols=args.cols)
+            print q.generate_text_overlay()
         elif args.grid:
             print q.generate_grid_overlay(rows=args.rows, cols=args.cols)
 
