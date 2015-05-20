@@ -6,8 +6,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--infile', action='store', required=True)
     parser.add_argument('--outfile', action='store')
-    parser.add_argument('--rows', action='store', default=5)
-    parser.add_argument('--cols', action='store', default=5)
+    parser.add_argument('--rows', action='store', type=int, default=5)
+    parser.add_argument('--cols', action='store', type=int, default=5)
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--text', action='store_true')
